@@ -23,6 +23,8 @@ def main() -> None:
 
             context.present(root_console)
 
+            root_console.clear()
+
             for event in tcod.event.wait():
                 action = event_handler.dispatch(event)
 
@@ -35,6 +37,7 @@ def main() -> None:
 
                 elif isinstance(action, EscapeAction):
                     raise SystemExit()
+
 
 if __name__ == "__main__":
     main()
