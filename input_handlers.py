@@ -44,7 +44,6 @@ class EventHandler(tcod.event.EventDispatch[Action]):
             action = BumpAction(player, dx=1, dy=0)
 
         elif key == tcod.event.K_ESCAPE:
-            action = EscapeAction()
             action = EscapeAction(player)
 
         # No Valid Key Was Pressed

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Optional, Iterable, TYPE_CHECKING
+from typing import Optional, Iterable, Iterator, TYPE_CHECKING
 
 import numpy as np  # type: ignore
 from tcod.console import Console
 
+from entity import Actor
 import tile_types
 
 if TYPE_CHECKING:
@@ -18,7 +19,7 @@ class GameMap:
         self.width = width
         self.height = height
         self.entities = entities
-        self.tiles = np.full((width,height), fill_value=tile_types.wall, order="F")
+        self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
 
         self.visible = np.full(
             (width, height), fill_value=False, order="F"
@@ -26,6 +27,15 @@ class GameMap:
         self.explored = np.full(
             (width, height), fill_value=False, order="F"
         )  # Tiles the player has seen before
+
+    @property
+    def actors(self) -> Iterator[Actor]:
+        """Iterate over this map's living actors."""
+        yield from (
+            entity
+            for entity in self.entities
+            if isinstance(entity, Actor) and entity.is_alive
+        )
 
     def get_blocking_entity_at_location(
             self, location_x: int, location_y: int,
@@ -41,6 +51,13 @@ class GameMap:
 
         return None
 
+    def get_actor_at_location(self, x: int, y: int) -> Optional[Actor]:
+        for actor in self.actors:
+            if actor.x == x and actor.y == y:
+                return actor
+
+        return None
+
     def in_bounds(self, x: int, y: int,) -> bool:
         """Return True if x and y are inside the bounds of this map."""
         return 0 <= x < self.width and 0 <= y < self.height
@@ -52,7 +69,7 @@ class GameMap:
         If it isn't, but it's in the "explored" array, then draw it with the "dark" colors.
         Otherwise, the default is "SHROUD"
         """
-        console.tiles_rgb[0 : self.width, 0 : self.height] = np.select(
+        console.tiles_rgb[0: self.width, 0: self.height] = np.select(
             condlist=[self.visible, self.explored],
             choicelist=[self.tiles["light"], self.tiles["dark"]],
             default=tile_types.SHROUD,
